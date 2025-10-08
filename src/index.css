@@ -1,0 +1,233 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter&family=Roboto:wght@400;700&family=Titillium+Web&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
+/* themes */
+.theme-dark {
+  background: #0f1115;
+  color: #e6e6e6;
+}
+.theme-light {
+  background: #f7f7fb;
+  color: #111;
+}
+
+
+main {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 1rem;
+  padding-top: 2rem;
+}
+
+@media (min-width: 1200px) {
+  main { max-width: 100%; }
+}
+
+h3 {
+  margin-bottom: 1rem;
+}
+
+section ul {
+  list-style: none;
+}
+
+section ul li {
+  border: 1px solid var(--card-border, #2a2f3a);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.content,
+p {
+  padding: 1rem 0;
+}
+
+.centered {
+  text-align: center;
+}
+
+.control {
+  border: 1px solid var(--control-border, #2a2f3a);
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  width: 100%;
+  margin-bottom: 1rem;
+  background: var(--control-bg, #161a22);
+  color: var(--control-fg, #e6e6e6);
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+/* problems module small tweaks */
+textarea.control {
+  resize: vertical;
+}
+button.control {
+  cursor: pointer;
+  width: auto;
+}
+select.control {
+  width: 220px;
+}
+
+/* panel headings */
+h4 { margin: 0 0 4px 0; }
+
+/* Split layout helpers */
+.split-grid {
+  display: grid;
+  grid-template-columns: 1fr 8px 1fr 8px 1fr;
+  gap: 0;
+  min-height: 0; /* Prevent grid items from growing beyond container */
+}
+
+.split-grid.full-height {
+  height: calc(100vh - 120px);
+  min-height: 600px;
+}
+
+.split-panel {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+
+.v-resizer {
+  width: 8px;
+  cursor: col-resize;
+  background: var(--resizer, #1f2430);
+  transition: background-color 0.15s ease;
+}
+.v-resizer:hover {
+  background: var(--resizer-hover, #2a3140);
+}
+
+/* Editor chrome (LeetCode-like) */
+.editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--card-border);
+  padding: 8px 12px;
+  background: var(--control-bg);
+  flex-shrink: 0;
+  min-height: 44px;
+}
+.editor-header-left { 
+  display: flex; 
+  align-items: center; 
+  gap: 8px; 
+  flex-shrink: 0;
+}
+.editor-header-right { 
+  display: flex; 
+  align-items: center; 
+  gap: 6px; 
+  flex-wrap: wrap;
+}
+.editor-header .title { 
+  font-weight: 600; 
+  opacity: 0.9; 
+  white-space: nowrap;
+}
+.dot { 
+  width: 8px; 
+  height: 8px; 
+  border-radius: 50%; 
+  display: inline-block; 
+  flex-shrink: 0;
+}
+.dot.green { background: #3fb950; }
+
+.code-editor-container {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.editor-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid var(--card-border);
+  padding: 6px 12px;
+  background: var(--control-bg);
+  flex-shrink: 0;
+  min-height: 30px;
+}
+.editor-footer .tab { 
+  font-size: 12px; 
+  opacity: 0.85; 
+  white-space: nowrap;
+}
+.editor-footer .tab.active { color: #3fb950; }
+
+/* Panel content areas */
+.panel-content {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+}
+
+.panel-header {
+  flex-shrink: 0;
+  padding: 12px;
+  border-bottom: 1px solid var(--card-border);
+  background: var(--control-bg);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .split-grid.full-height {
+    height: calc(100vh - 140px);
+  }
+  
+  .editor-header-right {
+    gap: 4px;
+  }
+  
+  .editor-header-right .control {
+    min-width: 80px;
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+}
+
+/* light theme variables */
+.theme-light {
+  --card-border: #d9d9e3;
+  --control-border: #d9d9e3;
+  --control-bg: #fff;
+  --control-fg: #111;
+  --panel-bg: #ffffff;
+  --resizer: #e6e6ef;
+  --resizer-hover: #d7d7ea;
+  --header-bg: #ffffff;
+  --header-fg: #111111;
+  --header-border: #e5e5ef;
+}
+
+/* dark theme variables */
+.theme-dark {
+  --card-border: #2a2f3a;
+  --control-border: #2a2f3a;
+  --control-bg: #161a22;
+  --control-fg: #e6e6e6;
+  --panel-bg: #121621;
+  --resizer: #1f2430;
+  --resizer-hover: #2a3140;
+  --header-bg: #121621;
+  --header-fg: #e6e6e6;
+  --header-border: #2a2f3a;
+}

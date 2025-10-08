@@ -1,0 +1,10 @@
+<svg width="48" height="24" viewBox="0 0 48 24" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="RS logo">
+    <!-- Фон (если нужен вариант с фоном) -->
+    <rect width="48" height="24" fill="none" />
+    <!-- Буквы RS -->
+    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"
+          font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="40"
+          fill="#FFFFFF" stroke="#0F1214" stroke-width="1">
+        RS
+    </text>
+</svg>

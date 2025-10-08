@@ -1,0 +1,18 @@
+<svg width="180" height="24" viewBox="0 0 180 24" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Jerking off the tasks logo">
+    <!-- Маленькое лого слева: рамка + белый фон + J -->
+    <g transform="translate(0,0)">
+        <!-- внешняя рамка -->
+        <rect x="0" y="0" width="24" height="24" rx="2" ry="2" fill="none" stroke="#edeff0"/>
+        <!-- внутренняя белая панель -->
+        <rect x="2.4" y="2.54" width="19.2" height="19.2" rx="1.2" ry="1.2" fill="#ffffff"/>
+        <!-- буква J (центрируем относительно панели) -->
+        <text x="12" y="16.5" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="12" text-anchor="middle" fill="#0F1214">J</text>
+    </g>
+
+    <!-- Основной текст (примерно по стилю оригинала) -->
+    <g transform="translate(32,0)">
+        <text x="0" y="16.5" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="12" fill="#ffffff">
+            Jerking off the tasks
+        </text>
+    </g>
+</svg>
