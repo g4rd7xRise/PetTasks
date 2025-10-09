@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { initSchema, usersRepo, progressRepo, todosRepo, problemsRepo, testsRepo, learningRepo } from './db.js';
+import { initSchema, usersRepo, progressRepo, todosRepo, problemsRepo, testsRepo, learningRepo, learningAdmin } from './db.js';
 import { config } from './config.js';
 
 const app = express();
@@ -186,6 +186,7 @@ app.delete('/api/todos/:id', requireAuth, (req, res) => {
 
 // Learning endpoints
 app.get('/api/learning/chapters', requireAuth, (req, res) => {
+  // Return flat list; client can group by parent_slug
   res.json(learningRepo.listChapters());
 });
 
@@ -196,9 +197,12 @@ app.get('/api/learning/chapters/:slug', requireAuth, (req, res) => {
 });
 
 app.post('/api/admin/learning/chapters', requireAuth, requireAdmin, (req, res) => {
-  const { id, slug, title, badge, order } = req.body || {};
+  const { id, slug, title, badge, order, parentSlug, introText } = req.body || {};
   if (!slug || !title) return res.status(400).json({ error: 'slug and title required' });
-  const saved = learningRepo.upsertChapter({ id: id || `lc_${Date.now()}`, slug, title, badge, order });
+  // Resolve by slug first to avoid accidental duplication when a different id is supplied
+  const existing = learningRepo.getChapterBySlug(slug);
+  const stableId = existing?.id || id || `lc_${Date.now()}`;
+  const saved = learningRepo.upsertChapter({ id: stableId, slug, title, badge, order, parentSlug, introText });
   res.json(saved);
 });
 
@@ -217,6 +221,24 @@ app.post('/api/admin/learning/sections', requireAuth, requireAdmin, (req, res) =
 app.delete('/api/admin/learning/sections/:id', requireAuth, requireAdmin, (req, res) => {
   learningRepo.removeSection(req.params.id);
   res.json({ ok: true });
+});
+
+// Admin maintenance
+app.post('/api/admin/learning/cleanup-orphans', requireAuth, requireAdmin, (req, res) => {
+  learningAdmin.cleanupOrphans();
+  res.json({ ok: true });
+});
+
+// Assign a parent section to a chapter (migration/helper)
+app.post('/api/admin/learning/assign-parent', requireAuth, requireAdmin, (req, res) => {
+  const { slug, parentSlug } = req.body || {};
+  if (!slug || !parentSlug) return res.status(400).json({ error: 'slug and parentSlug required' });
+  const ch = learningRepo.getChapterBySlug(slug);
+  if (!ch) return res.status(404).json({ error: 'chapter not found' });
+  const parent = learningRepo.getChapterBySlug(parentSlug);
+  if (!parent || parent.badge !== 'Раздел') return res.status(400).json({ error: 'parent must be an existing Раздел' });
+  const saved = learningRepo.upsertChapter({ id: ch.id, slug: ch.slug, title: ch.title, badge: ch.badge || 'Глава', parentSlug, introText: ch.introText || '', order: 0 });
+  res.json(saved);
 });
 
 // Admin: problems CRUD (simple bearer; in real app add role checks)

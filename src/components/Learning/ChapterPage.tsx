@@ -20,18 +20,23 @@ export default function ChapterPage({ id }: Props) {
   const [subtitle, setSubtitle] = useState(data.subtitle);
   const [sections, setSections] = useState<SectionData[]>(data.sections);
   const [chapterId, setChapterId] = useState<string>('');
+  const [parentSlug, setParentSlug] = useState<string | null>(null);
 
   // fetch chapter from API if exists
   useEffect(() => {
     (async () => {
       try {
         const slug = id;
+        // take parent from URL if provided
+        const url = new URL(window.location.href);
+        const parentFromUrl = url.hash.includes('?') ? new URLSearchParams(url.hash.split('?')[1]).get('parent') : null;
         const ch = await api<any>(`/api/learning/chapters/${slug}`);
         if (ch && ch.sections) {
           setTitle(ch.title || title);
           setSubtitle(ch.badge ? `${ch.badge}` : subtitle);
           setChapterId(ch.id);
-          setSections((ch.sections || []).map((s: any) => ({ anchor: s.anchor, title: s.title, text: s.textMd || '', embed: s.videos?.[0], embed2: s.videos?.[1] })));
+          setParentSlug(parentFromUrl || ch.parentSlug || null);
+          setSections((ch.sections || []).map((s: any) => ({ id: s.id, anchor: s.anchor, title: s.title, text: s.textMd || '', embed: s.videos?.[0], embed2: s.videos?.[1] })));
         }
       } catch {}
     })();
@@ -53,24 +58,33 @@ export default function ChapterPage({ id }: Props) {
   }
   function addSection() {
     const uid = Math.random().toString(36).slice(2, 8);
-    setSections(list => [...list, { anchor: `sec-${uid}`, title: 'Новый раздел', text: '' }]);
+    setSections(list => [...list, { id: `ls_${Date.now()}_${uid}`, anchor: `sec-${uid}`, title: 'Новый раздел', text: '' }]);
   }
 
   async function persistAll() {
     try {
-      // upsert chapter meta
-      await api('/api/admin/learning/chapters', { method: 'POST', body: { id: chapterId || `lc_${Date.now()}`, slug: id, title, badge: 'Глава', order: 0 } });
+      // upsert chapter meta with parent
+      await api('/api/admin/learning/chapters', { method: 'POST', body: { id: chapterId || `lc_${Date.now()}`, slug: id, title, badge: 'Глава', parentSlug: parentSlug || undefined, order: 0 } });
       // fetch chapter to get id if missing
       const ch = await api<any>(`/api/learning/chapters/${id}`);
       const chId = ch?.id;
-      if (!chId) return;
-      // Upsert sections
+      if (!chId) throw new Error('chapter not found after save');
+      // Upsert sections sequentially
       for (let idx = 0; idx < sections.length; idx++) {
         const s = sections[idx];
         const videos = [s.embed, s.embed2].filter(Boolean);
         await api('/api/admin/learning/sections', { method: 'POST', body: { id: s.id || `ls_${Date.now()}_${idx}`, chapterId: chId, anchor: s.anchor, title: s.title || 'Без названия', textMd: s.text || '', videos, order: idx } });
       }
-    } catch {}
+      // reload from DB to ensure consistency
+      const fresh = await api<any>(`/api/learning/chapters/${id}`);
+      if (fresh && fresh.sections) {
+        setSections((fresh.sections || []).map((s: any) => ({ id: s.id, anchor: s.anchor, title: s.title, text: s.textMd || '', embed: s.videos?.[0], embed2: s.videos?.[1] })));
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to save chapter', e);
+      alert('Не удалось сохранить изменения. Проверьте, что у вас права администратора и сервер запущен.');
+    }
   }
 
   return (
@@ -97,24 +111,6 @@ export default function ChapterPage({ id }: Props) {
                 <TextField value={title} onChange={(e) => setTitle(e.target.value)} variant="standard" fullWidth />
               ) : (
                 <Typography variant="h4" fontWeight={800}>{title}</Typography>
-              )}
-              {isAdmin && (
-                <Stack direction="row" spacing={0.5}>
-                  {editing ? (
-                    <>
-                      <Tooltip title="Сохранить">
-                        <IconButton size="small" onClick={() => setEditing(false)}><SaveIcon fontSize="small" /></IconButton>
-                      </Tooltip>
-                      <Tooltip title="Отменить">
-                        <IconButton size="small" onClick={() => { setTitle(data.title); setSubtitle(data.subtitle); setEditing(false); }}><CloseIcon fontSize="small" /></IconButton>
-                      </Tooltip>
-                    </>
-                  ) : (
-                    <Tooltip title="Редактировать главу">
-                      <IconButton size="small" onClick={() => setEditing(true)}><EditIcon fontSize="small" /></IconButton>
-                    </Tooltip>
-                  )}
-                </Stack>
               )}
             </Stack>
             {editing ? (
@@ -171,7 +167,15 @@ export default function ChapterPage({ id }: Props) {
       </Stack>
       {isAdmin && (
         <Tooltip title={editing ? 'Сохранить изменения' : 'Редактировать контент главы'}>
-          <Fab color="primary" size="medium" onClick={async () => { if (editing) await persistAll(); setEditing(v => !v); }} sx={{ position: 'fixed', bottom: 24, right: 24 }}>
+          <Fab color="primary" size="medium" onClick={async () => {
+            if (editing) {
+              await persistAll();
+              setEditing(false);
+            } else {
+              if (sections.length === 0) addSection();
+              setEditing(true);
+            }
+          }} sx={{ position: 'fixed', bottom: 24, right: 24 }}>
             {editing ? <SaveIcon /> : <EditIcon />}
           </Fab>
         </Tooltip>
@@ -181,7 +185,16 @@ export default function ChapterPage({ id }: Props) {
   );
 }
 
-type SectionData = { anchor: string; title: string; text?: string; embed?: string; embedInput?: string };
+type SectionData = {
+  id?: string;
+  anchor: string;
+  title: string;
+  text?: string;
+  embed?: string;
+  embedInput?: string;
+  embed2?: string;
+  embed2Input?: string;
+};
 function MarkdownRenderer({ text }: { text: string }) {
   return (
     <Box sx={{ '& p': { mb: 1.2 }, '& pre': { p: 1, bgcolor: '#0b1220', borderRadius: 1, overflow: 'auto' } }}>

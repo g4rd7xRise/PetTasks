@@ -67,7 +67,7 @@ function AppShell() {
 
         {hash.startsWith('learn-') && user && (
           <Container maxWidth="lg" sx={{ px: { xs: 2, md: 4 } }}>
-            <ChapterPage id={hash.replace('learn-', '')} />
+            <ChapterPage id={hash.replace('learn-', '').split('?')[0]} />
           </Container>
         )}
 

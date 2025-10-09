@@ -101,6 +101,8 @@ export function initSchema() {
 			slug TEXT NOT NULL UNIQUE,
 			title TEXT NOT NULL,
 			badge TEXT DEFAULT 'Глава',
+			parent_slug TEXT DEFAULT NULL,
+		intro_text TEXT DEFAULT '',
 			order_num INTEGER NOT NULL DEFAULT 0
 		)
 	`).run();
@@ -117,6 +119,17 @@ export function initSchema() {
 			FOREIGN KEY(chapter_id) REFERENCES learning_chapters(id) ON DELETE CASCADE
 		)
 	`).run();
+
+	// ensure parent_slug and intro_text exist (for hierarchy and descriptions)
+	try {
+		const cols = db.prepare("PRAGMA table_info(learning_chapters)").all();
+		if (!cols.find(c => c.name === 'parent_slug')) {
+			db.prepare("ALTER TABLE learning_chapters ADD COLUMN parent_slug TEXT DEFAULT NULL").run();
+		}
+		if (!cols.find(c => c.name === 'intro_text')) {
+			db.prepare("ALTER TABLE learning_chapters ADD COLUMN intro_text TEXT DEFAULT ''").run();
+		}
+	} catch {}
 
 	db.prepare(`
 		CREATE TABLE IF NOT EXISTS problem_tests (
@@ -224,7 +237,15 @@ export const testsRepo = {
 
 export const learningRepo = {
   listChapters() {
-    return db.prepare('SELECT * FROM learning_chapters ORDER BY order_num, title').all();
+	// Order: Sections first, then children (by order_num within parent), then orphan top-level chapters
+	return db.prepare(`
+		SELECT * FROM learning_chapters
+		ORDER BY CASE
+		  WHEN badge = 'Раздел' THEN 0
+		  WHEN parent_slug IS NOT NULL THEN 1
+		  ELSE 2
+		END, order_num, title
+	`).all();
   },
   getChapterBySlug(slug) {
     const ch = db.prepare('SELECT * FROM learning_chapters WHERE slug = ?').get(slug);
@@ -235,27 +256,66 @@ export const learningRepo = {
       slug: ch.slug,
       title: ch.title,
       badge: ch.badge,
+      parentSlug: ch.parent_slug,
+      introText: ch.intro_text || '',
       sections: sections.map(s => ({ id: s.id, anchor: s.anchor, title: s.title, textMd: s.text_md || '', videos: JSON.parse(s.videos_json || '[]') }))
     };
   },
-  upsertChapter({ id, slug, title, badge, order }) {
-    if (this.getChapterBySlug(slug)) {
-      db.prepare('UPDATE learning_chapters SET title=?, badge=?, order_num=? WHERE slug=?').run(title, badge || 'Глава', order || 0, slug);
-    } else {
-      db.prepare('INSERT INTO learning_chapters (id, slug, title, badge, order_num) VALUES (?, ?, ?, ?, ?)').run(id, slug, title, badge || 'Глава', order || 0);
+  upsertChapter({ id, slug, title, badge, order, parentSlug, introText }) {
+    // Normalize parentSlug to a clean slug without query fragments
+    const normalizeParent = (v) => {
+      if (!v) return null;
+      const s = String(v);
+      const cut = s.split('?')[0];
+      return cut || null;
+    };
+    parentSlug = normalizeParent(parentSlug);
+    const existingBySlug = db.prepare('SELECT * FROM learning_chapters WHERE slug = ?').get(slug);
+    if (existingBySlug) {
+      db.prepare('UPDATE learning_chapters SET title=?, badge=?, order_num=?, parent_slug=?, intro_text=? WHERE slug=?')
+        .run(title, badge || 'Глава', order || 0, parentSlug || null, introText || '', slug);
+      return this.getChapterBySlug(slug);
     }
+
+    // No title-based merging to avoid unexpected slug swaps; rely on slug identity only
+
+    // Generate a new, collision-free id for a new chapter; never reuse an id of another slug
+    function generateId() {
+      return `lc_${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
+    }
+    let candidateId = id || generateId();
+    let rowById = db.prepare('SELECT * FROM learning_chapters WHERE id = ?').get(candidateId);
+    if (rowById && rowById.slug !== slug) {
+      // This id already belongs to another chapter; generate a fresh one
+      do {
+        candidateId = generateId();
+        rowById = db.prepare('SELECT * FROM learning_chapters WHERE id = ?').get(candidateId);
+      } while (rowById);
+    }
+    if (rowById && rowById.slug === slug) {
+      // Same chapter by id, just update
+      db.prepare('UPDATE learning_chapters SET slug=?, title=?, badge=?, order_num=?, parent_slug=?, intro_text=? WHERE id=?')
+        .run(slug, title, badge || 'Глава', order || 0, parentSlug || null, introText || '', candidateId);
+      return this.getChapterBySlug(slug);
+    }
+    // Safe insert with collision-free id
+    db.prepare('INSERT INTO learning_chapters (id, slug, title, badge, parent_slug, intro_text, order_num) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .run(candidateId, slug, title, badge || 'Глава', parentSlug || null, introText || '', order || 0);
     return this.getChapterBySlug(slug);
   },
   removeChapter(slug) {
     const ch = db.prepare('SELECT * FROM learning_chapters WHERE slug = ?').get(slug);
     if (!ch) return;
+    // delete child chapters referencing this as parent
+    db.prepare('DELETE FROM learning_chapters WHERE parent_slug = ?').run(ch.slug);
     db.prepare('DELETE FROM learning_chapters WHERE id=?').run(ch.id);
   },
   upsertSection({ id, chapterId, anchor, title, textMd, videos, order }) {
     const exists = db.prepare('SELECT id FROM learning_sections WHERE id=?').get(id);
     if (exists) {
-      db.prepare('UPDATE learning_sections SET anchor=?, title=?, text_md=?, videos_json=?, order_num=? WHERE id=?')
-        .run(anchor, title, textMd || '', JSON.stringify(videos || []), order || 0, id);
+      // Always ensure chapter_id is set on update to avoid sections "sticking" to an old chapter when ids collide
+      db.prepare('UPDATE learning_sections SET chapter_id=?, anchor=?, title=?, text_md=?, videos_json=?, order_num=? WHERE id=?')
+        .run(chapterId, anchor, title, textMd || '', JSON.stringify(videos || []), order || 0, id);
     } else {
       db.prepare('INSERT INTO learning_sections (id, chapter_id, anchor, title, text_md, videos_json, order_num) VALUES (?, ?, ?, ?, ?, ?, ?)')
         .run(id, chapterId, anchor, title, textMd || '', JSON.stringify(videos || []), order || 0);
@@ -264,6 +324,14 @@ export const learningRepo = {
   },
   removeSection(id) {
     db.prepare('DELETE FROM learning_sections WHERE id=?').run(id);
+  }
+};
+
+// Admin utilities for learning
+export const learningAdmin = {
+  cleanupOrphans() {
+    // delete chapters that are not sections and have no parent
+    db.prepare("DELETE FROM learning_chapters WHERE (parent_slug IS NULL OR parent_slug = '') AND (badge IS NULL OR badge != 'Раздел')").run();
   }
 };
 
