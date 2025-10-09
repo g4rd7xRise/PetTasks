@@ -80,7 +80,7 @@ export default function Logo() {
   const ref = useRef<HTMLButtonElement | null>(null);
   const [cursor, setCursor] = useState({ x: 50, y: 50 });
   const [fast, setFast] = useState(false);
-  const [clicks, setClicks] = useState(0);
+  const [, setClicks] = useState(0);
 
   function handleMove(e: React.MouseEvent) {
     const el = ref.current;

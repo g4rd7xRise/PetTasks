@@ -1,10 +1,8 @@
-import { Box, Button, Container, Stack, Typography, Divider, Accordion, AccordionSummary, AccordionDetails, Paper } from '@mui/material';
-import Grid from '@mui/material/Grid';
+import { Button, Container, Stack, Typography, Divider, Accordion, AccordionSummary, AccordionDetails, Paper, Grid } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { useTheme } from '../Problems/ThemeContext';
+ 
 
 export default function LandingPage() {
-	const { theme } = useTheme();
 	return (
 		<Container maxWidth="lg" sx={{ py: 8 }}>
 			{/* Hero */}

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Box, Stack, Typography, Card, CardContent, Divider, List, ListItemButton, ListSubheader, IconButton, Tooltip, TextField, Button, Fab, Alert } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
-import CloseIcon from '@mui/icons-material/Close';
+// import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import { useAuth } from '../Auth/userStore';
@@ -82,7 +82,7 @@ export default function ChapterPage({ id }: Props) {
         setSections((fresh.sections || []).map((s: any) => ({ id: s.id, anchor: s.anchor, title: s.title, text: s.textMd || '', embed: s.videos?.[0], embed2: s.videos?.[1] })));
       }
     } catch (e) {
-      // eslint-disable-next-line no-console
+       
       console.error('Failed to save chapter', e);
       alert('Не удалось сохранить изменения. Проверьте, что у вас права администратора и сервер запущен.');
     }

@@ -1,6 +1,16 @@
 import type { Problem } from "./types";
 
-export const localProblems: Problem[] = [
+type TestCase = { id: string; input: unknown[]; expected: unknown };
+type Resource = { title: string; url: string };
+type LocalProblem = Problem & {
+  functionName?: string;
+  tests?: TestCase[];
+  resources?: Resource[];
+  solutionUrl?: string;
+  hints?: string[];
+};
+
+export const localProblems: LocalProblem[] = [
   {
     id: "two-sum",
     title: "Two Sum",

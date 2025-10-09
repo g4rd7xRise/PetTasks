@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Stack, Typography, Card, CardContent, Accordion, AccordionSummary, AccordionDetails, Chip, Button, Tooltip, Fab, TextField, IconButton } from '@mui/material';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
@@ -29,21 +29,8 @@ export default function RoadmapPage() {
     setEditingId(id);
     setEditingTitle(current);
   }
-  function saveEdit(id: string) {
-    setChapters(list => list.map(c => (c.id === id ? { ...c, title: editingTitle } : c)));
-    setEditingId(null);
-  }
-  function removeChapter(id: string) {
-    setChapters(list => list.filter(c => c.id !== id));
-    if (expanded === id) setExpanded(false);
-  }
-  function addChapter() {
-    const uid = Math.random().toString(36).slice(2, 6);
-    const id = `ch${uid}`;
-    setChapters(list => [...list, { id, title: 'Новая глава', badge: 'Глава', body: <Placeholder /> }]);
-    setExpanded(id);
-    startEdit(id, 'Новая глава');
-  }
+  // save handled via saveChapterToApi
+  // Legacy local add/remove were replaced by API-backed actions
 
   async function reloadChapters() {
     try {
@@ -264,7 +251,7 @@ export default function RoadmapPage() {
                                 </Box>
                               )
                             )}
-                          {items.filter(i => (i as any).parentSlug != null).map((child, childIndex, allChildren) => (
+                          {items.filter(i => (i as any).parentSlug != null).map((child) => (
                             <Stack key={child.id} direction="row" spacing={1} alignItems="center" justifyContent="space-between"
                                   draggable={isAdmin}
                                   onDragStart={() => { if (isAdmin) { setDragId(child.id); setDragType('chapter'); } }}
@@ -472,33 +459,10 @@ export default function RoadmapPage() {
   );
 }
 
-function Item({ text, type }: { text: string; type?: 'video' | 'article' }) {
-  return (
-    <Stack direction="row" spacing={1} alignItems="center">
-      {type === 'video' && <Chip size="small" color="success" label="Видео" />}
-      {type === 'article' && <Chip size="small" label="Статья" />}
-      <Typography>{text}</Typography>
-    </Stack>
-  );
-}
-
-function Bullet({ text }: { text: string }) {
-  return <Typography variant="body2">• {text}</Typography>;
-}
-
 function Placeholder({ note }: { note?: string }) {
   return (
     <Stack spacing={1}>
       <Typography>Материалы и ссылки будут добавлены.</Typography>
-      {note && <Typography variant="body2" sx={{ opacity: 0.8 }}>{note}</Typography>}
-    </Stack>
-  );
-}
-
-function WithPractice({ note }: { note?: string }) {
-  return (
-    <Stack spacing={1}>
-      <Typography>Теория + ПРАКТИКА</Typography>
       {note && <Typography variant="body2" sx={{ opacity: 0.8 }}>{note}</Typography>}
     </Stack>
   );

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { loadProblems } from "./loader";
 import type { Problem } from "./types";
-import { Chip, Stack, Select, MenuItem, InputBase, Tooltip } from '@mui/material';
+import { Select, MenuItem, InputBase, Tooltip } from '@mui/material';
 
 interface Props {
   githubRawUrl?: string;

@@ -1,5 +1,6 @@
 import { useAuth } from './userStore';
-import { Avatar, Box, Button, Card, CardContent, CardHeader, Stack, Tab, Tabs, TextField, Chip } from '@mui/material';
+import { Avatar, Box, Button, Card, CardContent, CardHeader, Stack, Chip } from '@mui/material';
+/*Tab, Tabs, TextField,*/
 
 export default function ProfilePage() {
   const { user, logout } = useAuth();

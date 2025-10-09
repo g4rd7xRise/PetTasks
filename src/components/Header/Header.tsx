@@ -46,19 +46,7 @@ const Actions = styled.div`
   position: relative;
 `;
 
-const UserButton = styled(Button)``;
 
-const Dropdown = styled.div`
-  position: absolute;
-  right: 0;
-  top: 44px;
-  border: 1px solid var(--card-border);
-  background: var(--panel-bg);
-  border-radius: 10px;
-  overflow: hidden;
-  min-width: 200px;
-  z-index: 100;
-`;
 
 interface HeaderProps {
   tabsActive?: string;
@@ -67,7 +55,7 @@ interface HeaderProps {
 }
 
 export default function Header({ tabsActive, onTabsChange, showTabs }: HeaderProps) {
-  const { theme, toggle } = useTheme();
+  const { toggle } = useTheme();
   const { user, logout } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [profileOpen, setProfileOpen] = useState(false);

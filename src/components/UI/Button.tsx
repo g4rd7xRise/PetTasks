@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import type {ReactNode} from 'react';
 
 interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost';

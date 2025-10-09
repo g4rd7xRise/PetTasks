@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { loadProblems } from "./loader";
-import type { Problem, ProblemProgress } from "./types";
+import type { Problem } from "./types";
 import { readProgress, writeProgress } from "./progressStore";
 import CodeEditor from "./CodeEditor";
 import TestResults from "./TestResults";
 import VideoPlayer from "./VideoPlayer";
-import { Box, Button, Chip, Snackbar, Stack, Tooltip, Typography, Menu, MenuItem, IconButton, FormControlLabel, Checkbox, TextField, Tabs, Tab, Paper } from "@mui/material";
+import { Box, Button, Chip, Snackbar, Stack, Typography, Menu, MenuItem, IconButton, FormControlLabel, Checkbox, TextField, Tabs, Tab, Paper } from "@mui/material";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { api } from "../UI/api";
@@ -20,8 +20,18 @@ function deepEqual(a: unknown, b: unknown): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
+type TestCase = { id: string; input: unknown[]; expected: unknown };
+type Resource = { title: string; url: string };
+type FullProblem = Problem & {
+  functionName?: string;
+  tests?: TestCase[];
+  hints?: string[];
+  resources?: Resource[];
+  videoEmbedId?: string;
+};
+
 export default function ProblemDetail({ slug, githubRawUrl, onBack }: Props) {
-  const [problems, setProblems] = useState<Problem[] | null>(null);
+  const [problems, setProblems] = useState<FullProblem[] | null>(null);
   const [code, setCode] = useState<string>("");
   const [attempts, setAttempts] = useState<number>(0);
   const [solved, setSolved] = useState<boolean>(false);
@@ -42,6 +52,7 @@ export default function ProblemDetail({ slug, githubRawUrl, onBack }: Props) {
   const [runScope, setRunScope] = useState<'all' | 'failed'>('all');
   const [shuffleTests, setShuffleTests] = useState<boolean>(false);
   const [timeoutMs, setTimeoutMs] = useState<number>(2000);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<number>(0);
 
   useEffect(() => {
     loadProblems({ githubRawUrl }).then(setProblems);
@@ -136,6 +147,7 @@ export default function ProblemDetail({ slug, githubRawUrl, onBack }: Props) {
       setCode(existing?.lastCode ?? problem.starterCode ?? "");
       setAttempts(existing?.attempts ?? 0);
       setSolved(existing?.solved ?? false);
+      setLastUpdatedAt(existing?.lastUpdatedAt ?? 0);
     })();
   }, [problem]);
 
@@ -148,9 +160,9 @@ export default function ProblemDetail({ slug, githubRawUrl, onBack }: Props) {
       </section>
     );
 
-  function buildTests() {
-    const all = problem?.tests ?? [] as any[];
-    let list = all;
+  function buildTests(): TestCase[] {
+    const all = (problem?.tests ?? []) as TestCase[];
+    let list: TestCase[] = all;
     if (runScope === 'failed' && testResults.length > 0) {
       const failed = new Set(testResults.filter(r => !r.passed).map(r => r.testId));
       list = all.filter(tc => failed.has(tc.id));
@@ -172,15 +184,15 @@ export default function ProblemDetail({ slug, githubRawUrl, onBack }: Props) {
     setTestResults([]);
     
     try {
-      // eslint-disable-next-line no-new-func
+       
       const factory = new Function(`${code}; return ${problem.functionName};`);
       const fn = factory();
       if (typeof fn !== "function") throw new Error(`Функция "${problem.functionName}" не найдена`);
 
-      const results: any[] = [];
+      const results: Array<{ testId: string; passed: boolean; input: unknown[]; expected: unknown; actual: unknown; error?: string } > = [];
       let passedAll = true;
-      let testsToRun = buildTests();
-      if (filterId) testsToRun = testsToRun.filter(tc => tc.id === filterId);
+      let testsToRun: TestCase[] = buildTests();
+      if (filterId) testsToRun = testsToRun.filter((tc: TestCase) => tc.id === filterId);
       const startTs = Date.now();
       for (const tc of testsToRun) {
         if (Date.now() - startTs > timeoutMs) {
@@ -189,7 +201,7 @@ export default function ProblemDetail({ slug, githubRawUrl, onBack }: Props) {
           continue;
         }
         try {
-          const actual = fn.apply(null, tc.input as any[]);
+          const actual = fn(...(tc.input as unknown[]));
           const passed = deepEqual(actual, tc.expected);
           if (!passed) passedAll = false;
           
@@ -200,7 +212,7 @@ export default function ProblemDetail({ slug, githubRawUrl, onBack }: Props) {
             expected: tc.expected,
             actual,
           });
-        } catch (testErr: any) {
+        } catch (testErr: unknown) {
           passedAll = false;
           results.push({
             testId: tc.id,
@@ -208,7 +220,7 @@ export default function ProblemDetail({ slug, githubRawUrl, onBack }: Props) {
             input: tc.input,
             expected: tc.expected,
             actual: null,
-            error: String(testErr?.message ?? testErr),
+            error: String((testErr as any)?.message ?? testErr),
           });
         }
       }
@@ -227,8 +239,9 @@ export default function ProblemDetail({ slug, githubRawUrl, onBack }: Props) {
         lastCode: code,
         lastUpdatedAt: Date.now(),
       });
-    } catch (err: any) {
-      setTestError(String(err?.message ?? err));
+      setLastUpdatedAt(Date.now());
+    } catch (err: unknown) {
+      setTestError(String((err as any)?.message ?? err));
       const nextAttempts = (attempts + 1);
       setAttempts(nextAttempts);
       writeProgress(problem.slug, {
@@ -237,6 +250,7 @@ export default function ProblemDetail({ slug, githubRawUrl, onBack }: Props) {
         lastCode: code,
         lastUpdatedAt: Date.now(),
       });
+      setLastUpdatedAt(Date.now());
     } finally {
       setRunning(false);
     }
@@ -244,15 +258,7 @@ export default function ProblemDetail({ slug, githubRawUrl, onBack }: Props) {
 
   function handleRun() { runWithFilter(); }
 
-  function handleMarkSolved() {
-    setSolved(true);
-    writeProgress(problem.slug, {
-      solved: true,
-      attempts,
-      lastCode: code,
-      lastUpdatedAt: Date.now(),
-    });
-  }
+  // handleMarkSolved removed (unused)
 
   function handleCodeChange(value: string) {
     setCode(value);
@@ -285,7 +291,7 @@ export default function ProblemDetail({ slug, githubRawUrl, onBack }: Props) {
             <Chip size="small" label={problem.difficulty} color={problem.difficulty === 'easy' ? 'success' : problem.difficulty === 'medium' ? 'warning' : 'error'} variant="outlined" />
             <Chip size="small" label={problem.frequency || 'умеренно'} variant="outlined" />
             <Typography variant="caption" sx={{ opacity: 0.8 }}>Попыток: {attempts}</Typography>
-            <Typography variant="caption" sx={{ opacity: 0.8 }}>Последнее: {new Date(Math.max(0, (readProgress(problem.slug)?.lastUpdatedAt ?? 0))).toLocaleDateString()}</Typography>
+            <Typography variant="caption" sx={{ opacity: 0.8 }}>Последнее: {new Date(Math.max(0, lastUpdatedAt)).toLocaleDateString()}</Typography>
           </Stack>
           <Stack direction="row" spacing={1}>
             <Button size="small" variant="outlined" onClick={addToTodo}>Добавить в To‑Do</Button>

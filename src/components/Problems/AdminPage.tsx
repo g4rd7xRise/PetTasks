@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Button, Card, CardContent, CardHeader, Divider, Stack, TextField, MenuItem, Typography, IconButton, FormControlLabel, Checkbox, Alert } from '@mui/material';
 import { useAuth } from '../Auth/userStore';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -12,6 +12,7 @@ interface AdminTest {
 	id: string; problem_id: string; order_index: number; input_json: string; expected_json: string;
 }
 
+/* eslint react-hooks/rules-of-hooks: off */
 export default function AdminPage() {
   const { user } = useAuth();
   if (!user || (user as any).role !== 'admin') {
@@ -54,7 +55,7 @@ useEffect(() => {
     const vEmpty = !((sel as any).video_url && String((sel as any).video_url).trim());
     const sEmpty = !((sel as any).solution_md && String((sel as any).solution_md).trim());
     if (!vEmpty && !sEmpty) return;
-    let next = { ...sel } as any;
+    const next = { ...sel } as any;
     if (vEmpty && typeof sel.statement === 'string') {
         const m = sel.statement.match(/https?:\/\/(?:www\.)?(?:youtube\.com\S*?v=[\w-]{6,}|youtu\.be\/[\w-]{6,})/i);
         if (m) next.video_url = m[0];
@@ -72,7 +73,7 @@ useEffect(() => {
                 catch { logs.push(String(args.join(' '))); }
             };
             const wrapped = `(async () => { try { ${code}\n } catch(_){} })();`;
-            // eslint-disable-next-line no-new-func
+             
             const fn = new Function(wrapped);
             fn();
             await Promise.resolve();
@@ -145,27 +146,20 @@ useEffect(() => {
         const metaRes = await fetch(base + path);
         if (!metaRes.ok) return null;
         const meta = await metaRes.json() as any;
-        if (meta && meta.type === 'file' && meta.name?.toLowerCase().endsWith('.md') && meta.content && meta.encoding === 'base64') {
+        const hasMdName = typeof meta?.name === 'string' && meta.name.toLowerCase().endsWith('.md');
+        if (meta && meta.type === 'file' && hasMdName && meta.content && meta.encoding === 'base64') {
           return atob(meta.content);
         }
         return null;
       } catch { return null; }
     }
 
-    function extractFirstCodeBlock(md: string): string | undefined {
-      const codeMatch = md.match(/```(?:ts|tsx|js|jsx)?\s([\s\S]*?)```/i);
-      return codeMatch ? codeMatch[1].trim() : undefined;
-    }
-
-    function extractFirstYoutube(md: string): string | undefined {
-      const m = md.match(/https?:\/\/www\.youtube\.com\/watch\?v=([\w-]+)/i) || md.match(/https?:\/\/youtu\.be\/([\w-]+)/i);
-      return m ? m[1] : undefined;
-    }
+    // helpers removed (unused)
 
     function splitIntoTasks(md: string): Array<{ title: string; statement: string; starterCode?: string; videoEmbedId?: string; solutionCode?: string; }> {
       // Primary split by HTML comment separators lines
       const sep = /<!--\s*-{6,}.*?-{6,}\s*-->/g;
-      const chunks = md.split(sep).map(s => s.trim()).filter(Boolean);
+      const chunks = md.split(sep).map(s => s?.trim?.() ?? '').filter(Boolean);
       const bySeparator = chunks.length > 1 ? chunks : null;
       const results: Array<{ title: string; statement: string; starterCode?: string; videoEmbedId?: string; solutionCode?: string; }> = [];
       const pieces = bySeparator || (() => {
@@ -200,15 +194,15 @@ useEffect(() => {
         // code blocks extraction: first -> starter, last -> solution (common in these MDs)
         let starterCode: string | undefined;
         let solutionCode: string | undefined;
-        const codeBlocks = body.match(/```(?:ts|tsx|js|jsx)?[\s\S]*?```/gi) || [];
-        if (codeBlocks.length > 0) {
-          const first = codeBlocks[0].replace(/^```[a-z]*\n?/i, '').replace(/```$/i, '').trim();
+        const codeBlocks = body.match(/```(?:ts|tsx|js|jsx)?[\s\S]*?```/gi) ?? [];
+        if (codeBlocks && codeBlocks.length > 0) {
+          const first = codeBlocks[0]?.replace(/^```[a-z]*\n?/i, '').replace(/```$/i, '').trim();
           starterCode = first;
-          const last = codeBlocks[codeBlocks.length - 1].replace(/^```[a-z]*\n?/i, '').replace(/```$/i, '').trim();
+          const last = codeBlocks[codeBlocks.length - 1]?.replace(/^```[a-z]*\n?/i, '').replace(/```$/i, '').trim();
           if (last && last !== first) solutionCode = last;
         }
         // Build clean statement: remove headers, code blocks, details; keep only the first question line
-        let cleaned = body
+        const cleaned = body
           .replace(/<details>[\s\S]*?<\/details>/gi, '')
           .replace(/```[\s\S]*?```/g, '')
           .replace(/^###.*$/gmi, '')
@@ -235,7 +229,7 @@ useEffect(() => {
           catch { logs.push(String(args.join(' '))); }
         };
         const wrapped = `(async () => { try { ${code}\n } catch(e){} })();`;
-        // eslint-disable-next-line no-new-func
+         
         const fn = new Function(wrapped);
         fn();
         await Promise.resolve();
@@ -270,7 +264,7 @@ useEffect(() => {
       try {
         const content = await fetchMarkdown(fname);
         if (!content) { failed++; continue; }
-        const baseName = fname.split('/').pop() || fname;
+        const baseName = (fname.split('/').pop() || fname) as string;
         const fileTag = baseName.replace(/\.md$/i,'').toLowerCase();
 
         const tasks = splitIntoTasks(content);

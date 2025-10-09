@@ -1,11 +1,11 @@
 import Header from "./components/Header/Header.tsx";
-import TabsSection from "./components/TabsSection.tsx";
+// import TabsSection from "./components/TabsSection.tsx";
 import { useEffect, useState } from "react";
 import ProblemsPage from './components/Problems/ProblemsPage.tsx';
 import HomePage from './components/Problems/HomePage.tsx';
 import { GITHUB_PROBLEMS_RAW_URL } from './components/Problems/config.ts';
 import AuthPage from './components/Auth/AuthPage.tsx';
-import ProfilePage from './components/Auth/ProfilePage.tsx';
+// import ProfilePage from './components/Auth/ProfilePage.tsx';
 import { AuthProvider, useAuth } from './components/Auth/userStore.tsx';
 import LandingPage from './components/Auth/LandingPage.tsx';
 import AdminPage from './components/Problems/AdminPage.tsx';
