@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Box, Button, Card, CardContent, CardHeader, Divider, Stack, TextField, MenuItem, Typography, IconButton, FormControlLabel, Checkbox, Alert } from '@mui/material';
+import { useAuth } from '../Auth/userStore';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { api } from '../UI/api';
 
@@ -12,6 +13,18 @@ interface AdminTest {
 }
 
 export default function AdminPage() {
+  const { user } = useAuth();
+  if (!user || (user as any).role !== 'admin') {
+    return (
+      <Box sx={{ py: 6, display: 'grid', placeItems: 'center' }}>
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography variant="h5" sx={{ mb: 2 }}>Доступ запрещён</Typography>
+          <Typography sx={{ opacity: 0.8, mb: 3 }}>У вас нет прав для просмотра админ‑панели.</Typography>
+          <Button variant="contained" onClick={() => (window.location.hash = 'problems-home')}>На главную</Button>
+        </Box>
+      </Box>
+    );
+  }
 	const [problems, setProblems] = useState<AdminProblem[]>([]);
 	const [sel, setSel] = useState<AdminProblem | null>(null);
 	const [tests, setTests] = useState<AdminTest[]>([]);

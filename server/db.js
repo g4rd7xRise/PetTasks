@@ -94,6 +94,30 @@ export function initSchema() {
 		}
 	} catch {}
 
+	// learning: chapters and sections
+	db.prepare(`
+		CREATE TABLE IF NOT EXISTS learning_chapters (
+			id TEXT PRIMARY KEY,
+			slug TEXT NOT NULL UNIQUE,
+			title TEXT NOT NULL,
+			badge TEXT DEFAULT 'Глава',
+			order_num INTEGER NOT NULL DEFAULT 0
+		)
+	`).run();
+
+	db.prepare(`
+		CREATE TABLE IF NOT EXISTS learning_sections (
+			id TEXT PRIMARY KEY,
+			chapter_id TEXT NOT NULL,
+			anchor TEXT NOT NULL,
+			title TEXT NOT NULL,
+			text_md TEXT DEFAULT '',
+			videos_json TEXT DEFAULT '[]',
+			order_num INTEGER NOT NULL DEFAULT 0,
+			FOREIGN KEY(chapter_id) REFERENCES learning_chapters(id) ON DELETE CASCADE
+		)
+	`).run();
+
 	db.prepare(`
 		CREATE TABLE IF NOT EXISTS problem_tests (
 			id TEXT PRIMARY KEY,
@@ -196,6 +220,51 @@ export const testsRepo = {
 		return db.prepare('SELECT * FROM problem_tests WHERE id=?').get(t.id);
 	},
 	remove(id) { return db.prepare('DELETE FROM problem_tests WHERE id=?').run(id); }
+};
+
+export const learningRepo = {
+  listChapters() {
+    return db.prepare('SELECT * FROM learning_chapters ORDER BY order_num, title').all();
+  },
+  getChapterBySlug(slug) {
+    const ch = db.prepare('SELECT * FROM learning_chapters WHERE slug = ?').get(slug);
+    if (!ch) return null;
+    const sections = db.prepare('SELECT * FROM learning_sections WHERE chapter_id = ? ORDER BY order_num').all(ch.id);
+    return {
+      id: ch.id,
+      slug: ch.slug,
+      title: ch.title,
+      badge: ch.badge,
+      sections: sections.map(s => ({ id: s.id, anchor: s.anchor, title: s.title, textMd: s.text_md || '', videos: JSON.parse(s.videos_json || '[]') }))
+    };
+  },
+  upsertChapter({ id, slug, title, badge, order }) {
+    if (this.getChapterBySlug(slug)) {
+      db.prepare('UPDATE learning_chapters SET title=?, badge=?, order_num=? WHERE slug=?').run(title, badge || 'Глава', order || 0, slug);
+    } else {
+      db.prepare('INSERT INTO learning_chapters (id, slug, title, badge, order_num) VALUES (?, ?, ?, ?, ?)').run(id, slug, title, badge || 'Глава', order || 0);
+    }
+    return this.getChapterBySlug(slug);
+  },
+  removeChapter(slug) {
+    const ch = db.prepare('SELECT * FROM learning_chapters WHERE slug = ?').get(slug);
+    if (!ch) return;
+    db.prepare('DELETE FROM learning_chapters WHERE id=?').run(ch.id);
+  },
+  upsertSection({ id, chapterId, anchor, title, textMd, videos, order }) {
+    const exists = db.prepare('SELECT id FROM learning_sections WHERE id=?').get(id);
+    if (exists) {
+      db.prepare('UPDATE learning_sections SET anchor=?, title=?, text_md=?, videos_json=?, order_num=? WHERE id=?')
+        .run(anchor, title, textMd || '', JSON.stringify(videos || []), order || 0, id);
+    } else {
+      db.prepare('INSERT INTO learning_sections (id, chapter_id, anchor, title, text_md, videos_json, order_num) VALUES (?, ?, ?, ?, ?, ?, ?)')
+        .run(id, chapterId, anchor, title, textMd || '', JSON.stringify(videos || []), order || 0);
+    }
+    return db.prepare('SELECT * FROM learning_sections WHERE id=?').get(id);
+  },
+  removeSection(id) {
+    db.prepare('DELETE FROM learning_sections WHERE id=?').run(id);
+  }
 };
 
 

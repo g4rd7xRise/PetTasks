@@ -1,9 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Box, Stack, Typography, Card, CardContent, Accordion, AccordionSummary, AccordionDetails, Chip, Button, Divider, Link, Tooltip, Fab, TextField } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useAuth } from '../Auth/userStore';
+import { api } from '../UI/api';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 
 export default function RoadmapPage() {
   const [expanded, setExpanded] = useState<string | false>('intro');
@@ -56,7 +58,7 @@ export default function RoadmapPage() {
       id: 'ch2', title: 'Глава 2. CSS', body: <Placeholder />
     },
     { id: 'ch3', title: 'Глава 3. Git', body: <Placeholder /> },
-    { id: 'ch15', title: 'Раздел 1.5. Сети', body: <Typography>Сложный раздел — читать несколько раз, можно параллельно с JS/React/Redux.</Typography> },
+    { id: 'ch15', title: 'Раздел 1.5. Сети', badge: 'Раздел', body: <Typography>Сложный раздел — читать несколько раз, можно параллельно с JS/React/Redux.</Typography> },
     { id: 'ch4', title: 'Глава 4. Теория HTTP', body: <Placeholder /> },
     { id: 'ch5', title: 'Глава 5. Безопасность', body: <Placeholder /> },
     { id: 'ch6', title: 'Глава 6. JS', body: <WithPractice /> },
@@ -75,7 +77,7 @@ export default function RoadmapPage() {
     { id: 'sd', title: 'Глава 16. System Design', body: <Placeholder /> },
   ]), []);
 
-  const [chapters, setChapters] = useState(initialChapters);
+  const [chapters, setChapters] = useState<any[]>(initialChapters);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState<string>('');
 
@@ -94,9 +96,30 @@ export default function RoadmapPage() {
   function addChapter() {
     const uid = Math.random().toString(36).slice(2, 6);
     const id = `ch${uid}`;
-    setChapters(list => [...list, { id, title: 'Новая глава', body: <Placeholder /> }]);
+    setChapters(list => [...list, { id, title: 'Новая глава', badge: 'Глава', body: <Placeholder /> }]);
     setExpanded(id);
     startEdit(id, 'Новая глава');
+  }
+
+  // Load chapters from API (fallback to initial when empty)
+  useEffect(() => {
+    (async () => {
+      try {
+        const rows = await api<any[]>('/api/learning/chapters');
+        if (Array.isArray(rows) && rows.length) {
+          setChapters(rows.map(r => ({ id: r.slug, title: r.title, badge: r.badge, body: <Placeholder /> })));
+        }
+      } catch {}
+    })();
+  }, []);
+
+  async function saveChapterToApi(id: string) {
+    const ch = chapters.find(c => c.id === id);
+    if (!ch) return;
+    await api('/api/admin/learning/chapters', { method: 'POST', body: { id: `lc_${Date.now()}`, slug: ch.id, title: editingTitle || ch.title, badge: ch.badge || 'Глава', order: 0 } });
+  }
+  async function deleteChapterFromApi(id: string) {
+    await api(`/api/admin/learning/chapters/${id}`, { method: 'DELETE' });
   }
 
   return (
@@ -119,12 +142,23 @@ export default function RoadmapPage() {
                       ) : (
                         <Typography fontWeight={700} noWrap>{ch.title}</Typography>
                       )}
-                      {ch.id.startsWith('ch') && <Chip size="small" label="Глава" />}
+                      {ch.id !== 'intro' && <Chip size="small" label={(ch as any).badge || 'Глава'} />}
                     </Stack>
                     <Stack direction="row" spacing={1} alignItems="center">
-                      {ch.id !== 'intro' && (
-                        <Button size="small" variant="contained" onClick={(e) => { e.stopPropagation(); window.location.hash = `learn-${ch.id}`; }}>Открыть</Button>
-                      )}
+                      <Button size="small" variant="text" color="primary"
+                              onClick={(e) => { e.stopPropagation(); window.location.hash = `learn-${ch.id}`; }}
+                              endIcon={<ArrowForwardIosIcon sx={{ fontSize: 14 }} />}
+                              sx={{
+                                px: 1,
+                                minWidth: 0,
+                                textTransform: 'none',
+                                fontWeight: 700,
+                                fontSize: 12,
+                                color: 'primary.main',
+                                '&:hover': { textDecoration: 'underline', background: 'transparent' }
+                              }}>
+                        Открыть
+                      </Button>
                     </Stack>
                   </Stack>
                 </AccordionSummary>
@@ -132,17 +166,17 @@ export default function RoadmapPage() {
                   <Stack spacing={1.5}>
                     {/* В развороте — только краткая информация */}
                     {ch.id === 'intro' ? ch.body : <Typography sx={{ opacity: 0.85 }}>Краткое описание главы. Полный материал внутри.</Typography>}
-                    {isAdmin && ch.id !== 'intro' && (
+                    {isAdmin && (
                       <Stack direction="row" spacing={1}>
                         {editingId === ch.id ? (
                           <>
-                            <Button size="small" variant="contained" onClick={() => saveEdit(ch.id)}>Сохранить</Button>
+                            <Button size="small" variant="contained" onClick={async () => { await saveChapterToApi(ch.id); saveEdit(ch.id); }}>Сохранить</Button>
                             <Button size="small" onClick={() => setEditingId(null)}>Отменить</Button>
                           </>
                         ) : (
                           <>
                             <Button size="small" onClick={() => startEdit(ch.id, ch.title)}>Переименовать</Button>
-                            <Button size="small" color="error" startIcon={<DeleteIcon />} onClick={() => removeChapter(ch.id)}>Удалить главу</Button>
+                            <Button size="small" color="error" startIcon={<DeleteIcon />} onClick={async () => { await deleteChapterFromApi(ch.id); removeChapter(ch.id); }}>Удалить главу</Button>
                           </>
                         )}
                       </Stack>

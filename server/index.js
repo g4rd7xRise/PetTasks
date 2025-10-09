@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { initSchema, usersRepo, progressRepo, todosRepo, problemsRepo, testsRepo } from './db.js';
+import { initSchema, usersRepo, progressRepo, todosRepo, problemsRepo, testsRepo, learningRepo } from './db.js';
 import { config } from './config.js';
 
 const app = express();
@@ -181,6 +181,41 @@ app.patch('/api/todos/:id', requireAuth, (req, res) => {
 app.delete('/api/todos/:id', requireAuth, (req, res) => {
   const { id } = req.params;
   todosRepo.delete(id, req.userId);
+  res.json({ ok: true });
+});
+
+// Learning endpoints
+app.get('/api/learning/chapters', requireAuth, (req, res) => {
+  res.json(learningRepo.listChapters());
+});
+
+app.get('/api/learning/chapters/:slug', requireAuth, (req, res) => {
+  const ch = learningRepo.getChapterBySlug(req.params.slug);
+  if (!ch) return res.status(404).json({ error: 'Not found' });
+  res.json(ch);
+});
+
+app.post('/api/admin/learning/chapters', requireAuth, requireAdmin, (req, res) => {
+  const { id, slug, title, badge, order } = req.body || {};
+  if (!slug || !title) return res.status(400).json({ error: 'slug and title required' });
+  const saved = learningRepo.upsertChapter({ id: id || `lc_${Date.now()}`, slug, title, badge, order });
+  res.json(saved);
+});
+
+app.delete('/api/admin/learning/chapters/:slug', requireAuth, requireAdmin, (req, res) => {
+  learningRepo.removeChapter(req.params.slug);
+  res.json({ ok: true });
+});
+
+app.post('/api/admin/learning/sections', requireAuth, requireAdmin, (req, res) => {
+  const { id, chapterId, anchor, title, textMd, videos, order } = req.body || {};
+  if (!chapterId || !anchor || !title) return res.status(400).json({ error: 'chapterId, anchor, title required' });
+  const saved = learningRepo.upsertSection({ id: id || `ls_${Date.now()}`, chapterId, anchor, title, textMd, videos, order });
+  res.json(saved);
+});
+
+app.delete('/api/admin/learning/sections/:id', requireAuth, requireAdmin, (req, res) => {
+  learningRepo.removeSection(req.params.id);
   res.json({ ok: true });
 });
 

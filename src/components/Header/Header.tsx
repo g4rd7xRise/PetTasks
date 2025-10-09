@@ -90,6 +90,7 @@ export default function Header({ tabsActive, onTabsChange, showTabs }: HeaderPro
                        '& .MuiTab-root.Mui-selected': { color: '#6ea8fe' } }}>
               <Tab value="problems-home" label="Главная" />
               <Tab value="problems" label="Задачи" />
+              <Tab value="roadmap" label="RoadMap" />
             </Tabs>
           )}
         </div>

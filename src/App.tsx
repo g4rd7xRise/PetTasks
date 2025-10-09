@@ -28,7 +28,17 @@ function AppShell() {
 
   return (
     <>
-      <Header showTabs={!!user && hash !== 'auth'} tabsActive={tab} onTabsChange={(current) => setTab(current)} />
+      <Header showTabs={!!user && hash !== 'auth'} tabsActive={tab} onTabsChange={(current) => {
+        setTab(current);
+        if (current === 'roadmap') {
+          window.location.hash = 'roadmap';
+        } else {
+          // Leaving special pages (admin/roadmap/learn) back to main app tabs
+          if (hash === 'roadmap' || hash.startsWith('learn-') || hash === 'admin') {
+            window.location.hash = '';
+          }
+        }
+      }} />
 
       <main>
         {/* Tabs moved into Header */}
@@ -43,7 +53,7 @@ function AppShell() {
           <LandingPage />
         )}
 
-        {hash === 'admin' && user && (
+        {hash === 'admin' && user && (user as any).role === 'admin' && (
           <Container maxWidth="xl" sx={{ px: { xs: 2, md: 4 } }}>
             <AdminPage />
           </Container>

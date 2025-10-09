@@ -1,4 +1,5 @@
 import { Dialog, DialogTitle, DialogContent, Stack, Typography, Button, Divider, Box } from '@mui/material';
+import { useAuth } from '../Auth/userStore';
 
 interface Props {
 	open: boolean;
@@ -6,6 +7,8 @@ interface Props {
 }
 
 export default function FrontendDialog({ open, onClose }: Props) {
+    const { user } = useAuth();
+    const role = (user as any)?.role || 'user';
 	return (
 		<Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
 			<DialogTitle>Front‑End инструменты</DialogTitle>
@@ -34,7 +37,9 @@ export default function FrontendDialog({ open, onClose }: Props) {
                             <Button variant="contained" size="small" onClick={() => { window.location.hash = 'roadmap'; onClose(); }}>RoadMap</Button>
 							<Button variant="outlined" size="small">Формы</Button>
 							<Button variant="outlined" size="small">Таблицы</Button>
-							<Button variant="contained" size="small" onClick={() => { window.location.hash = 'admin'; onClose(); }}>Админ: задачи</Button>
+							{role === 'admin' && (
+								<Button variant="contained" size="small" onClick={() => { window.location.hash = 'admin'; onClose(); }}>Админ: задачи</Button>
+							)}
 						</Stack>
 					</Box>
 				</Stack>

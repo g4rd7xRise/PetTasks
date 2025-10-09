@@ -1,11 +1,12 @@
-import { useMemo, useState } from 'react';
-import { Box, Stack, Typography, Card, CardContent, Divider, List, ListItemButton, ListSubheader, IconButton, Tooltip, TextField, Button, Fab } from '@mui/material';
+import { useEffect, useMemo, useState } from 'react';
+import { Box, Stack, Typography, Card, CardContent, Divider, List, ListItemButton, ListSubheader, IconButton, Tooltip, TextField, Button, Fab, Alert } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import { useAuth } from '../Auth/userStore';
+import { api } from '../UI/api';
 import ReactMarkdown from 'react-markdown';
 
 interface Props { id: string; }
@@ -18,6 +19,24 @@ export default function ChapterPage({ id }: Props) {
   const [title, setTitle] = useState(data.title);
   const [subtitle, setSubtitle] = useState(data.subtitle);
   const [sections, setSections] = useState<SectionData[]>(data.sections);
+  const [chapterId, setChapterId] = useState<string>('');
+
+  // fetch chapter from API if exists
+  useEffect(() => {
+    (async () => {
+      try {
+        const slug = id;
+        const ch = await api<any>(`/api/learning/chapters/${slug}`);
+        if (ch && ch.sections) {
+          setTitle(ch.title || title);
+          setSubtitle(ch.badge ? `${ch.badge}` : subtitle);
+          setChapterId(ch.id);
+          setSections((ch.sections || []).map((s: any) => ({ anchor: s.anchor, title: s.title, text: s.textMd || '', embed: s.videos?.[0], embed2: s.videos?.[1] })));
+        }
+      } catch {}
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   function toEmbed(url?: string) {
     if (!url) return '';
@@ -37,8 +56,31 @@ export default function ChapterPage({ id }: Props) {
     setSections(list => [...list, { anchor: `sec-${uid}`, title: 'Новый раздел', text: '' }]);
   }
 
+  async function persistAll() {
+    try {
+      // upsert chapter meta
+      await api('/api/admin/learning/chapters', { method: 'POST', body: { id: chapterId || `lc_${Date.now()}`, slug: id, title, badge: 'Глава', order: 0 } });
+      // fetch chapter to get id if missing
+      const ch = await api<any>(`/api/learning/chapters/${id}`);
+      const chId = ch?.id;
+      if (!chId) return;
+      // Upsert sections
+      for (let idx = 0; idx < sections.length; idx++) {
+        const s = sections[idx];
+        const videos = [s.embed, s.embed2].filter(Boolean);
+        await api('/api/admin/learning/sections', { method: 'POST', body: { id: s.id || `ls_${Date.now()}_${idx}`, chapterId: chId, anchor: s.anchor, title: s.title || 'Без названия', textMd: s.text || '', videos, order: idx } });
+      }
+    } catch {}
+  }
+
   return (
     <Box sx={{ py: 4 }}>
+      {isAdmin && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Подсказки Markdown: заголовки #, **жирный**, _курсив_, списки -, нумерация 1., код `inline` и блоки ```.
+          Поддерживается GitHub Flavored Markdown (таблицы, чекбоксы).
+        </Alert>
+      )}
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="flex-start">
         <Card variant="outlined" sx={{ width: { xs: '100%', md: 280 }, position: 'sticky', top: 88 }}>
           <List subheader={<ListSubheader component="div">Содержание</ListSubheader>}>
@@ -129,11 +171,12 @@ export default function ChapterPage({ id }: Props) {
       </Stack>
       {isAdmin && (
         <Tooltip title={editing ? 'Сохранить изменения' : 'Редактировать контент главы'}>
-          <Fab color="primary" size="medium" onClick={() => setEditing(v => !v)} sx={{ position: 'fixed', bottom: 24, right: 24 }}>
+          <Fab color="primary" size="medium" onClick={async () => { if (editing) await persistAll(); setEditing(v => !v); }} sx={{ position: 'fixed', bottom: 24, right: 24 }}>
             {editing ? <SaveIcon /> : <EditIcon />}
           </Fab>
         </Tooltip>
       )}
+      <Fab size="small" color="default" onClick={() => (window.location.hash = 'roadmap')} sx={{ position: 'fixed', bottom: 24, left: 24 }}>←</Fab>
     </Box>
   );
 }
