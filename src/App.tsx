@@ -9,6 +9,8 @@ import ProfilePage from './components/Auth/ProfilePage.tsx';
 import { AuthProvider, useAuth } from './components/Auth/userStore.tsx';
 import LandingPage from './components/Auth/LandingPage.tsx';
 import AdminPage from './components/Problems/AdminPage.tsx';
+import RoadmapPage from './components/Learning/RoadmapPage.tsx';
+import ChapterPage from './components/Learning/ChapterPage.tsx';
 import Container from '@mui/material/Container';
 
 
@@ -47,13 +49,25 @@ function AppShell() {
           </Container>
         )}
 
-        {tab === 'problems-home' && hash !== 'auth' && user && hash !== 'admin' && (
+        {hash === 'roadmap' && user && (
+          <Container maxWidth="lg" sx={{ px: { xs: 2, md: 4 } }}>
+            <RoadmapPage />
+          </Container>
+        )}
+
+        {hash.startsWith('learn-') && user && (
+          <Container maxWidth="lg" sx={{ px: { xs: 2, md: 4 } }}>
+            <ChapterPage id={hash.replace('learn-', '')} />
+          </Container>
+        )}
+
+        {tab === 'problems-home' && hash !== 'auth' && user && hash !== 'admin' && hash !== 'roadmap' && !hash.startsWith('learn-') && (
           <Container maxWidth="xl" sx={{ px: { xs: 2, md: 4 } }}>
             <HomePage githubRawUrl={GITHUB_PROBLEMS_RAW_URL} />
           </Container>
         )}
 
-        {tab === 'problems' && hash !== 'auth' && user && hash !== 'admin' && (
+        {tab === 'problems' && hash !== 'auth' && user && hash !== 'admin' && hash !== 'roadmap' && !hash.startsWith('learn-') && (
           <Container maxWidth="xl" sx={{ px: { xs: 2, md: 4 } }}>
             <ProblemsPage githubRawUrl={GITHUB_PROBLEMS_RAW_URL} />
           </Container>

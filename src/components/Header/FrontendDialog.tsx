@@ -29,9 +29,9 @@ export default function FrontendDialog({ open, onClose }: Props) {
 					</Box>
 					<Divider />
 					<Box>
-						<Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1 }}>Шаблоны</Typography>
+                        <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1 }}>Обучение</Typography>
 						<Stack direction="row" spacing={1} flexWrap="wrap">
-							<Button variant="outlined" size="small">Layout</Button>
+                            <Button variant="contained" size="small" onClick={() => { window.location.hash = 'roadmap'; onClose(); }}>RoadMap</Button>
 							<Button variant="outlined" size="small">Формы</Button>
 							<Button variant="outlined" size="small">Таблицы</Button>
 							<Button variant="contained" size="small" onClick={() => { window.location.hash = 'admin'; onClose(); }}>Админ: задачи</Button>
