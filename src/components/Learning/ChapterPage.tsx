@@ -8,6 +8,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { useAuth } from '../Auth/userStore';
 import { api } from '../UI/api';
 import ReactMarkdown from 'react-markdown';
+import MarkdownToolbar from '../UI/MarkdownToolbar';
 
 interface Props { id: string; }
 
@@ -136,6 +137,7 @@ export default function ChapterPage({ id }: Props) {
                 </Stack>
                 {editing ? (
                   <Stack spacing={1} sx={{ mb: 1 }}>
+                    <MarkdownToolbar get={() => s.text || ''} set={(next) => updateSection(i, { text: next })} />
                     <TextField label="Видео 1 (YouTube или embed)" value={s.embedInput || s.embed || ''} onChange={(e) => updateSection(i, { embedInput: e.target.value, embed: toEmbed(e.target.value) })} fullWidth size="small" />
                     <TextField label="Видео 2 (необязательно)" value={s.embed2Input || s.embed2 || ''} onChange={(e) => updateSection(i, { embed2Input: e.target.value, embed2: toEmbed(e.target.value) })} fullWidth size="small" />
                   </Stack>

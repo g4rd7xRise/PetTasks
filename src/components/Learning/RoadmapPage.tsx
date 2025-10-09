@@ -193,7 +193,7 @@ export default function RoadmapPage() {
                               onKeyDown={async (e)=>{ if (e.key==='Enter') { e.preventDefault(); await saveChapterToApi(parent!.id); } }}
                               size="small" variant="standard" fullWidth />
                           ) : (
-                            <Typography fontWeight={800} noWrap>{isSection ? `${title} — Раздел` : `${title}`}</Typography>
+                            <Typography fontWeight={800} noWrap>{title}</Typography>
                           )}
                           <Chip size="small" label={isSection ? 'Раздел' : 'Глава'} />
                         </Stack>
