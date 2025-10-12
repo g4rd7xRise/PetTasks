@@ -7,12 +7,16 @@ function progressKey(slug: string) {
   return `problem-progress:${slug}`;
 }
 
-export async function readProgress(slug: string): Promise<ProblemProgress | null> {
+export async function readProgress(
+  slug: string,
+): Promise<ProblemProgress | null> {
   try {
     const server = await api<ProblemProgress | null>(`/api/progress/${slug}`);
     if (server) {
       // keep local cache for offline
-      try { localStorage.setItem(progressKey(slug), JSON.stringify(server)); } catch {}
+      try {
+        localStorage.setItem(progressKey(slug), JSON.stringify(server));
+      } catch {}
       return server;
     }
   } catch {
@@ -28,7 +32,9 @@ export async function readProgress(slug: string): Promise<ProblemProgress | null
 
 export async function writeProgress(slug: string, progress: ProblemProgress) {
   // optimistic local update
-  try { localStorage.setItem(progressKey(slug), JSON.stringify(progress)); } catch {}
+  try {
+    localStorage.setItem(progressKey(slug), JSON.stringify(progress));
+  } catch {}
   try {
     const stats = readStatsIndex();
     stats[slug] = progress.solved ? "solved" : "attempted";
@@ -36,14 +42,19 @@ export async function writeProgress(slug: string, progress: ProblemProgress) {
   } catch {}
   // sync to server (ignore errors to preserve UX)
   try {
-    await api(`/api/progress/${slug}`, { method: 'POST', body: { solved: progress.solved, lastCode: progress.lastCode || '' } });
+    await api(`/api/progress/${slug}`, {
+      method: "POST",
+      body: { solved: progress.solved, lastCode: progress.lastCode || "" },
+    });
   } catch {}
 }
 
 export function readStatsIndex(): Record<string, "solved" | "attempted"> {
   try {
     const raw = localStorage.getItem(STATS_KEY);
-    return raw ? (JSON.parse(raw) as Record<string, "solved" | "attempted">) : {};
+    return raw
+      ? (JSON.parse(raw) as Record<string, "solved" | "attempted">)
+      : {};
   } catch {
     return {};
   }
@@ -60,5 +71,3 @@ export function aggregateStats(allSlugs: string[]) {
   }
   return { total: allSlugs.length, solved, attempted };
 }
-
-

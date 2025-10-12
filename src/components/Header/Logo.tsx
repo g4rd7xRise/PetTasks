@@ -1,5 +1,5 @@
-import { styled, keyframes } from 'styled-components';
-import { useRef, useState } from 'react';
+import { styled, keyframes } from "styled-components";
+import { useRef, useState } from "react";
 
 const hue = keyframes`
   0% { filter: hue-rotate(0deg); }
@@ -17,15 +17,29 @@ const Wrapper = styled.button`
   gap: 8px;
   padding: 6px 8px;
   border: 1px solid var(--card-border, #2a2f3a);
-  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.06),
+    rgba(255, 255, 255, 0.02)
+  );
   color: var(--header-fg, #e6e6e6);
   border-radius: 10px;
   cursor: pointer;
   outline: none;
-  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
   -webkit-tap-highlight-color: transparent;
-  &:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,.2); border-color: rgba(110,168,254,.6); }
-  @media (max-width: 640px) { gap: 6px; padding: 6px; }
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    border-color: rgba(110, 168, 254, 0.6);
+  }
+  @media (max-width: 640px) {
+    gap: 6px;
+    padding: 6px;
+  }
   position: relative;
   overflow: hidden;
 `;
@@ -38,9 +52,9 @@ const Badge = styled.span`
   animation: ${hue} 6s linear infinite;
   position: relative;
   display: inline-block;
-  box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     right: -5px;
     top: -5px;
@@ -48,32 +62,36 @@ const Badge = styled.span`
     height: 8px;
     border-radius: 50%;
     background: #6ea8fe;
-    box-shadow: 0 0 10px rgba(110,168,254,.8);
+    box-shadow: 0 0 10px rgba(110, 168, 254, 0.8);
     animation: ${floatPulse} 2s ease-in-out infinite;
   }
 `;
 
 const Title = styled.span`
   font-weight: 800;
-  letter-spacing: .3px;
+  letter-spacing: 0.3px;
   background: linear-gradient(90deg, #e6ecff, #a4b8ff);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   font-size: 14px;
-  @media (max-width: 640px) { display: none; }
+  @media (max-width: 640px) {
+    display: none;
+  }
 `;
 
 const TitleShort = styled.span`
   font-weight: 800;
-  letter-spacing: .4px;
+  letter-spacing: 0.4px;
   background: linear-gradient(90deg, #e6ecff, #a4b8ff);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   font-size: 14px;
   display: none;
-  @media (max-width: 640px) { display: inline; }
+  @media (max-width: 640px) {
+    display: inline;
+  }
 `;
 
 export default function Logo() {
@@ -91,11 +109,13 @@ export default function Logo() {
     setCursor({ x, y });
   }
 
-  function goHome() { window.location.hash = 'problems-home'; }
+  function goHome() {
+    window.location.hash = "problems-home";
+  }
 
   function showEncouragement() {
     try {
-      const overlay = document.createElement('div');
+      const overlay = document.createElement("div");
       overlay.style.cssText = `
         position: fixed; inset: 0; z-index: 9999;
         display: grid; place-items: center;
@@ -104,7 +124,7 @@ export default function Logo() {
         backdrop-filter: blur(6px);
         opacity: 0; transition: opacity .35s ease;
       `;
-      const card = document.createElement('div');
+      const card = document.createElement("div");
       card.style.cssText = `
         padding: 28px 32px; border-radius: 16px;
         border: 1px solid rgba(255,255,255,.08);
@@ -113,35 +133,37 @@ export default function Logo() {
         transform: scale(.96); opacity: .9; transition: transform .35s ease, opacity .35s ease;
         text-align: center; max-width: 720px; width: calc(100% - 32px);
       `;
-      const title = document.createElement('div');
-      title.textContent = 'Продолжай учиться — у тебя всё получится!';
+      const title = document.createElement("div");
+      title.textContent = "Продолжай учиться — у тебя всё получится!";
       title.style.cssText = `
         font-size: clamp(18px, 4vw, 28px); font-weight: 900;
         background: linear-gradient(90deg, #e6ecff, #a4b8ff, #6ea8fe);
         -webkit-background-clip: text; background-clip: text; color: transparent;
         letter-spacing: .3px; margin-bottom: 8px;
       `;
-      const subtitle = document.createElement('div');
-      subtitle.textContent = 'Маленькие шаги каждый день приводят к большим результатам.';
+      const subtitle = document.createElement("div");
+      subtitle.textContent =
+        "Маленькие шаги каждый день приводят к большим результатам.";
       subtitle.style.cssText = `
         font-size: clamp(12px, 2.5vw, 14px); opacity: .85; color: #e2e8f0;
       `;
       // gentle floating particles
-      const stars = document.createElement('div');
-      stars.style.cssText = 'position:absolute; inset:0; pointer-events:none; overflow:hidden;';
+      const stars = document.createElement("div");
+      stars.style.cssText =
+        "position:absolute; inset:0; pointer-events:none; overflow:hidden;";
       for (let i = 0; i < 42; i++) {
-        const s = document.createElement('span');
+        const s = document.createElement("span");
         const size = Math.random() * 2 + 1;
         s.style.cssText = `
           position:absolute; width:${size}px; height:${size}px; border-radius:50%;
-          background: rgba(110,168,254,${Math.random()*.7+.2});
-          left:${Math.random()*100}%; top:${Math.random()*100}%;
+          background: rgba(110,168,254,${Math.random() * 0.7 + 0.2});
+          left:${Math.random() * 100}%; top:${Math.random() * 100}%;
           filter: blur(.2px);
-          animation: floatY ${6 + Math.random()*6}s ease-in-out ${Math.random()*-6}s infinite alternate;
+          animation: floatY ${6 + Math.random() * 6}s ease-in-out ${Math.random() * -6}s infinite alternate;
         `;
         stars.appendChild(s);
       }
-      const style = document.createElement('style');
+      const style = document.createElement("style");
       style.textContent = `@keyframes floatY { from { transform: translateY(-6px) } to { transform: translateY(6px) } }`;
       document.head.appendChild(style);
 
@@ -150,26 +172,53 @@ export default function Logo() {
       overlay.appendChild(stars);
       overlay.appendChild(card);
       document.body.appendChild(overlay);
-      requestAnimationFrame(() => { overlay.style.opacity = '1'; card.style.transform = 'scale(1)'; card.style.opacity = '1'; });
+      requestAnimationFrame(() => {
+        overlay.style.opacity = "1";
+        card.style.transform = "scale(1)";
+        card.style.opacity = "1";
+      });
       function close() {
-        overlay.style.opacity = '0'; card.style.transform = 'scale(.96)'; card.style.opacity = '.9';
+        overlay.style.opacity = "0";
+        card.style.transform = "scale(.96)";
+        card.style.opacity = ".9";
         setTimeout(() => overlay.remove(), 350);
       }
-      overlay.addEventListener('click', close);
+      overlay.addEventListener("click", close);
       setTimeout(close, 2400);
     } catch {}
   }
 
   return (
-    <Wrapper ref={ref} onMouseMove={handleMove} onMouseLeave={() => setCursor({ x: 50, y: 50 })}
-             onClick={(e) => { e.preventDefault(); setFast((v) => !v); goHome(); setClicks(c=>{ const n=c+1; if(n>=5){ showEncouragement(); return 0;} return n;}); }} aria-label="PetTasks Home">
-      <Badge style={{ animationDuration: fast ? '2s' : '6s' }} />
+    <Wrapper
+      ref={ref}
+      onMouseMove={handleMove}
+      onMouseLeave={() => setCursor({ x: 50, y: 50 })}
+      onClick={(e) => {
+        e.preventDefault();
+        setFast((v) => !v);
+        goHome();
+        setClicks((c) => {
+          const n = c + 1;
+          if (n >= 5) {
+            showEncouragement();
+            return 0;
+          }
+          return n;
+        });
+      }}
+      aria-label="PetTasks Home"
+    >
+      <Badge style={{ animationDuration: fast ? "2s" : "6s" }} />
       <Title>PetTasks</Title>
       <TitleShort>PT</TitleShort>
-      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none',
-        background: `radial-gradient(320px circle at ${cursor.x}% ${cursor.y}%, rgba(110,168,254,.18), transparent 60%)` }} />
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          background: `radial-gradient(320px circle at ${cursor.x}% ${cursor.y}%, rgba(110,168,254,.18), transparent 60%)`,
+        }}
+      />
     </Wrapper>
   );
 }
-
-

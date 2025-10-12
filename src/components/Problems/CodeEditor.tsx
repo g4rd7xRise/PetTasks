@@ -1,6 +1,6 @@
-import React from 'react'
-import { Editor } from '@monaco-editor/react';
-import { useTheme } from './ThemeContext';
+import React from "react";
+import { Editor } from "@monaco-editor/react";
+import { useTheme } from "./ThemeContext";
 
 interface Props {
   value: string;
@@ -18,18 +18,18 @@ export default function CodeEditor({ value, onChange, onRun }: Props) {
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
       e.preventDefault();
       onRun();
     }
   }
 
-	return (
+  return (
     <div className="code-editor-container" onKeyDown={handleKeyDown}>
       <Editor
         height="100%"
         defaultLanguage="javascript"
-        theme={theme === 'dark' ? 'vs-dark' : 'light'}
+        theme={theme === "dark" ? "vs-dark" : "light"}
         value={value}
         onChange={handleEditorChange}
         options={{
@@ -38,14 +38,14 @@ export default function CodeEditor({ value, onChange, onRun }: Props) {
           scrollBeyondLastLine: false,
           automaticLayout: true,
           tabSize: 2,
-          wordWrap: 'on',
-          lineNumbers: 'on',
+          wordWrap: "on",
+          lineNumbers: "on",
           folding: true,
           // bracketMatching: 'always',
-          autoIndent: 'full',
+          autoIndent: "full",
           padding: { top: 10, bottom: 10 },
-          renderWhitespace: 'selection',
-          cursorBlinking: 'smooth',
+          renderWhitespace: "selection",
+          cursorBlinking: "smooth",
           smoothScrolling: true,
         }}
       />

@@ -13,11 +13,13 @@ async function fetchFromGithubRaw(url: string): Promise<Problem[] | null> {
   }
 }
 
-export async function loadProblems(config?: ProblemsDataSourceConfig): Promise<Problem[]> {
+export async function loadProblems(
+  config?: ProblemsDataSourceConfig,
+): Promise<Problem[]> {
   try {
-    const res = await fetch('/api/problems', { cache: 'no-store' });
+    const res = await fetch("/api/problems", { cache: "no-store" });
     if (res.ok) {
-      const data = await res.json() as Problem[];
+      const data = (await res.json()) as Problem[];
       if (Array.isArray(data) && data.length > 0) return data;
     }
   } catch {}
@@ -27,6 +29,3 @@ export async function loadProblems(config?: ProblemsDataSourceConfig): Promise<P
   }
   return localProblems;
 }
-
-
-

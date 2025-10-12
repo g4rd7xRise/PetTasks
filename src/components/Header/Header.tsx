@@ -3,18 +3,18 @@ import { useState } from "react";
 import { useTheme } from "../Problems/ThemeContext";
 import { useAuth } from "../Auth/userStore";
 import { styled } from "styled-components";
-import IconButton from '@mui/material/IconButton';
-import AvatarMui from '@mui/material/Avatar';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import Button from '@mui/material/Button';
-import ProfileDialog from '../Auth/ProfileDialog';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-import FrontendDialog from './FrontendDialog';
-import Tooltip from '@mui/material/Tooltip';
-import AppsIcon from '@mui/icons-material/Apps';
-import Logo from './Logo';
+import IconButton from "@mui/material/IconButton";
+import AvatarMui from "@mui/material/Avatar";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import Button from "@mui/material/Button";
+import ProfileDialog from "../Auth/ProfileDialog";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import FrontendDialog from "./FrontendDialog";
+import Tooltip from "@mui/material/Tooltip";
+import AppsIcon from "@mui/icons-material/Apps";
+import Logo from "./Logo";
 // import "./Header.css";
 
 const HeaderContainer = styled.header`
@@ -46,15 +46,17 @@ const Actions = styled.div`
   position: relative;
 `;
 
-
-
 interface HeaderProps {
   tabsActive?: string;
   onTabsChange?: (tab: string) => void;
   showTabs?: boolean;
 }
 
-export default function Header({ tabsActive, onTabsChange, showTabs }: HeaderProps) {
+export default function Header({
+  tabsActive,
+  onTabsChange,
+  showTabs,
+}: HeaderProps) {
   const { toggle } = useTheme();
   const { user, logout } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -69,13 +71,18 @@ export default function Header({ tabsActive, onTabsChange, showTabs }: HeaderPro
         <Brand>
           <Logo />
         </Brand>
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+        <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
           {showTabs && (
-            <Tabs value={tabsActive} onChange={(_, v) => onTabsChange && onTabsChange(v)}
-                  sx={{ minHeight: 44,
-                       '& .MuiTabs-indicator': { height: 3, borderRadius: 2 },
-                       '& .MuiTab-root': { textTransform: 'none', fontWeight: 600 },
-                       '& .MuiTab-root.Mui-selected': { color: '#6ea8fe' } }}>
+            <Tabs
+              value={tabsActive}
+              onChange={(_, v) => onTabsChange && onTabsChange(v)}
+              sx={{
+                minHeight: 44,
+                "& .MuiTabs-indicator": { height: 3, borderRadius: 2 },
+                "& .MuiTab-root": { textTransform: "none", fontWeight: 600 },
+                "& .MuiTab-root.Mui-selected": { color: "#6ea8fe" },
+              }}
+            >
               <Tab value="problems-home" label="Главная" />
               <Tab value="problems" label="Задачи" />
               <Tab value="roadmap" label="RoadMap" />
@@ -85,24 +92,69 @@ export default function Header({ tabsActive, onTabsChange, showTabs }: HeaderPro
         <Actions>
           {user && (
             <Tooltip title="Front‑End">
-              <IconButton size="small" onClick={() => setFeOpen(true)} aria-label="front-end">
+              <IconButton
+                size="small"
+                onClick={() => setFeOpen(true)}
+                aria-label="front-end"
+              >
                 <AppsIcon fontSize="small" />
               </IconButton>
             </Tooltip>
           )}
           {user ? (
             <>
-              <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} size="small">
-                <AvatarMui alt="avatar" src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=3fb950&color=0a0a0a`} sx={{ width: 30, height: 30 }} />
+              <IconButton
+                onClick={(e) => setAnchorEl(e.currentTarget)}
+                size="small"
+              >
+                <AvatarMui
+                  alt="avatar"
+                  src={
+                    user.avatarUrl ||
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=3fb950&color=0a0a0a`
+                  }
+                  sx={{ width: 30, height: 30 }}
+                />
               </IconButton>
-              <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
-                <MenuItem onClick={() => { setAnchorEl(null); setProfileOpen(true); }}>Профиль</MenuItem>
-                <MenuItem onClick={() => { setAnchorEl(null); toggle(); }}>Переключить тему</MenuItem>
-                <MenuItem onClick={() => { setAnchorEl(null); logout(); }} sx={{ color: '#f85149' }}>Выйти</MenuItem>
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={() => setAnchorEl(null)}
+              >
+                <MenuItem
+                  onClick={() => {
+                    setAnchorEl(null);
+                    setProfileOpen(true);
+                  }}
+                >
+                  Профиль
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    setAnchorEl(null);
+                    toggle();
+                  }}
+                >
+                  Переключить тему
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    setAnchorEl(null);
+                    logout();
+                  }}
+                  sx={{ color: "#f85149" }}
+                >
+                  Выйти
+                </MenuItem>
               </Menu>
             </>
           ) : (
-            <Button variant="contained" onClick={() => (window.location.hash = 'auth')}>Войти</Button>
+            <Button
+              variant="contained"
+              onClick={() => (window.location.hash = "auth")}
+            >
+              Войти
+            </Button>
           )}
         </Actions>
       </HeaderContainer>

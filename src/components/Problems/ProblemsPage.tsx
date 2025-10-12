@@ -27,7 +27,8 @@ export default function ProblemsPage({ githubRawUrl }: Props) {
     // routes: "problems" | "problems/<slug>"
     const path = hash || "problems";
     const parts = path.split("/").filter(Boolean);
-    if (parts[0] !== "problems") return { slug: null } as { slug: string | null };
+    if (parts[0] !== "problems")
+      return { slug: null } as { slug: string | null };
     return { slug: parts[1] ?? null } as { slug: string | null };
   }, [hash]);
 
@@ -49,6 +50,3 @@ export default function ProblemsPage({ githubRawUrl }: Props) {
     <ProblemList githubRawUrl={githubRawUrl} onOpenProblem={openProblem} />
   );
 }
-
-
-

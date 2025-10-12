@@ -33,16 +33,23 @@ export const localProblems: LocalProblem[] = [
       "  return [-1, -1];\n" +
       "}\n",
     tests: [
-      { id: "t1", input: [[2,7,11,15], 9], expected: [0,1] },
-      { id: "t2", input: [[3,2,4], 6], expected: [1,2] },
-      { id: "t3", input: [[3,3], 6], expected: [0,1] },
+      { id: "t1", input: [[2, 7, 11, 15], 9], expected: [0, 1] },
+      { id: "t2", input: [[3, 2, 4], 6], expected: [1, 2] },
+      { id: "t3", input: [[3, 3], 6], expected: [0, 1] },
     ],
     resources: [
-      { title: "Hash Map Technique", url: "https://leetcode.com/problems/two-sum/solutions/" },
+      {
+        title: "Hash Map Technique",
+        url: "https://leetcode.com/problems/two-sum/solutions/",
+      },
     ],
     solutionUrl: "https://leetcode.com/problems/two-sum/solutions/",
-    videoUrl: "https://www.youtube.com/results?search_query=two+sum+explanation",
-    hints: ["Подумайте о хранении индексов в Map", "Ищите комплимент target - nums[i]"],
+    videoUrl:
+      "https://www.youtube.com/results?search_query=two+sum+explanation",
+    hints: [
+      "Подумайте о хранении индексов в Map",
+      "Ищите комплимент target - nums[i]",
+    ],
   },
   {
     id: "valid-parentheses",
@@ -73,13 +80,17 @@ export const localProblems: LocalProblem[] = [
       { id: "p5", input: ["{[]}"], expected: true },
     ],
     resources: [
-      { title: "Stack pattern", url: "https://leetcode.com/problems/valid-parentheses/solutions/" },
+      {
+        title: "Stack pattern",
+        url: "https://leetcode.com/problems/valid-parentheses/solutions/",
+      },
     ],
     solutionUrl: "https://leetcode.com/problems/valid-parentheses/solutions/",
-    videoUrl: "https://www.youtube.com/results?search_query=valid+parentheses+stack",
-    hints: ["Используйте стек", "Сопоставляйте закрывающие и открывающие скобки"],
+    videoUrl:
+      "https://www.youtube.com/results?search_query=valid+parentheses+stack",
+    hints: [
+      "Используйте стек",
+      "Сопоставляйте закрывающие и открывающие скобки",
+    ],
   },
 ];
-
-
-

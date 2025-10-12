@@ -16,7 +16,10 @@ function readInitialTheme(): Theme {
     if (saved === "light" || saved === "dark") return saved;
   } catch {}
   // fallback to system preference
-  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+  if (
+    window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: light)").matches
+  ) {
     return "light";
   }
   return "dark";
@@ -27,13 +30,26 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     document.body.classList.remove("theme-light", "theme-dark");
-    document.body.classList.add(theme === "light" ? "theme-light" : "theme-dark");
-    try { localStorage.setItem("app-theme", theme); } catch {}
+    document.body.classList.add(
+      theme === "light" ? "theme-light" : "theme-dark",
+    );
+    try {
+      localStorage.setItem("app-theme", theme);
+    } catch {}
   }, [theme]);
 
-  const value = useMemo<ThemeContextValue>(() => ({ theme, setTheme, toggle: () => setTheme(theme === "light" ? "dark" : "light") }), [theme]);
+  const value = useMemo<ThemeContextValue>(
+    () => ({
+      theme,
+      setTheme,
+      toggle: () => setTheme(theme === "light" ? "dark" : "light"),
+    }),
+    [theme],
+  );
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+  );
 }
 
 export function useTheme() {
@@ -41,5 +57,3 @@ export function useTheme() {
   if (!ctx) throw new Error("useTheme must be used within ThemeProvider");
   return ctx;
 }
-
-

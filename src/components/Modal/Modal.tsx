@@ -20,8 +20,5 @@ export default function Modal({ children, open }: ModalProps) {
   const container = document.getElementById("modal-root");
   if (!container) return null;
 
-  return createPortal(
-    <dialog ref={dialog}>{children}</dialog>,
-    container,
-  );
+  return createPortal(<dialog ref={dialog}>{children}</dialog>, container);
 }
