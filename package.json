@@ -1,5 +1,5 @@
 {
-  "name": "02-react-ts-basic-start",
+  "name": "pet-tasks",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -42,6 +42,7 @@
     "@storybook/addon-onboarding": "^9.1.10",
     "@storybook/addon-vitest": "^9.1.10",
     "@storybook/react-vite": "^9.1.10",
+    "@types/node": "^24.7.2",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
@@ -57,7 +58,7 @@
     "storybook": "^9.1.10",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
-    "vite": "^6.3.5",
+    "vite": "7.1.5",
     "vitest": "^3.2.4"
   }
 }

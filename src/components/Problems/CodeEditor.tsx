@@ -1,3 +1,4 @@
+import React from 'react'
 import { Editor } from '@monaco-editor/react';
 import { useTheme } from './ThemeContext';
 
@@ -9,7 +10,7 @@ interface Props {
   height?: string;
 }
 
-export default function CodeEditor({ value, onChange, onRun, onReset, height = "calc(100% - 74px)" }: Props) {
+export default function CodeEditor({ value, onChange, onRun }: Props) {
   const { theme } = useTheme();
 
   function handleEditorChange(val: string | undefined) {
@@ -23,7 +24,7 @@ export default function CodeEditor({ value, onChange, onRun, onReset, height = "
     }
   }
 
-  return (
+	return (
     <div className="code-editor-container" onKeyDown={handleKeyDown}>
       <Editor
         height="100%"
@@ -40,7 +41,7 @@ export default function CodeEditor({ value, onChange, onRun, onReset, height = "
           wordWrap: 'on',
           lineNumbers: 'on',
           folding: true,
-          bracketMatching: 'always',
+          // bracketMatching: 'always',
           autoIndent: 'full',
           padding: { top: 10, bottom: 10 },
           renderWhitespace: 'selection',

@@ -92,7 +92,7 @@ export default function TestResults({ results, allPassed, error, onRunSingle }: 
             marginBottom: 4,
             color: result.passed ? '#3fb950' : '#f85149'
           }}>
-            {result.passed ? '✅' : '❌'} Тест {result.testId}
+            {result.passed ? '✅' : '❌'} Тест {result.testId} (#{index + 1}) //Костыль
           </div>
           
           <div style={{ fontSize: 12 }}>
