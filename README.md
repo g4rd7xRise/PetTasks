@@ -156,9 +156,10 @@ npm run build-storybook     # сборка статического стенда
 ## Лицензия
 MIT
 
-# Contributors
+## 👥 Team
 
-- [Azizakii](https://github.com/Azizakii)
+- [@g4rd7xRise](https://github.com/g4rd7xRise) - Project owner
+- [@Azizakii](https://github.com/Azizakii) - Collaborator
 
 ---
 Если что-то не работает — проверьте версии Node/npm, переменные окружения и логи старта API/клиента.
